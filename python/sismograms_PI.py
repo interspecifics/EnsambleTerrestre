@@ -57,7 +57,8 @@ colors = {'white':[222, 211, 222], 'dark': [12, 5, 1], \
 			'other':[113, 45, 8], 'yellow': [0, 255, 245], \
 			'red':[0, 0, 255], 'purp':[248, 6, 175]}
 bus = smbus.SMBus(1)
-address = 0x6A
+address_NE = 0x6A
+address_SW = 0x3A
 
 
 def change_state(s):
@@ -74,7 +75,9 @@ def write_I2C(val):
 	return -1
 
 def write_list_I2C(string_data):
-	bus.write_i2c_block_data(address, 0, [ord(c) for c in string_data])
+	lis = [ord(c) for c in string_data]
+	bus.write_i2c_block_data(address_NE, 0, lis[:2])
+	bus.write_i2c_block_data(address_SW, 0, lis[2:])
 	#print ">> "+ string_data
 	#for c in string_data:
 	#	bus.write_byte(address, ord(c))
@@ -167,6 +170,7 @@ def read_track(img, ntrack):
 		#print "<x: %i> [%i : %i]: %i" % (ix, y_top, y_bottom, delta_y)
 		track.append([delta_y, y_top, y_bottom])
 	return track
+
 
 def read_tracks(img):
 	# like read_track but for all at once, return matrix
