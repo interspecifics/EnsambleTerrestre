@@ -619,7 +619,7 @@ def draw_sismograms():
 			write_list_I2C(data_str)
 			# show it
 			cv2.imshow(window_name, nu_canvas)
-			k = cv2.waitKey(400) & 0xFF
+			k = cv2.waitKey(1000) & 0xFF
 			if k == 27:
 				cv2.destroyAllWindows()
 				break
@@ -655,6 +655,7 @@ if __name__ == "__main__":
 	except:
 		print "<osc>: x.x"
 	'''
+	"""time.sleep(60)"""
 	print "[ interspecifics // ensamble terrrestre ]"
 	# --timing
 	t0 = 0
@@ -687,9 +688,15 @@ if __name__ == "__main__":
 		elif state==2:
 			draw_updating()
 			t0 = time.time()
+                        data_str = "AAAA"
+                        write_list_I2C(data_str)
 		elif state==4:
 			draw_sismograms()
+                        data_str = "AAAA"
+                        write_list_I2C(data_str)
 		else:
+                        data_str = "AAAA"
+                        write_list_I2C(data_str)
 			break
 		"""
 
