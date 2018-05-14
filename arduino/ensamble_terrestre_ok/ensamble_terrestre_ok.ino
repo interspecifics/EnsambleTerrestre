@@ -46,7 +46,6 @@ char mag_1A, mag_1B, mag_2A, mag_2B;
 
 
 void setup(){
-  Wire.begin(0x3A);
   Serial.begin(115200);
   pinMode(13, OUTPUT);
   // received data
@@ -158,12 +157,12 @@ void loop(){
       }
     }
   } else if (st_1A == 2){
-    S1A.setSpeed(20);
+    S1A.setSpeed(40);
     if( (curTime - t0_1A)> MICROSECONDS_PER_MICROSTEP ){
       t0_1A = curTime;
       // step and record
       S1A.step(1);
-      delayMicroseconds(STEP_DELAY);
+      delayMicroseconds(STEP_DELAY/2);
       c_1A--;
       // enought down? change state
       if ( c_1A <= 0){
@@ -232,12 +231,12 @@ void loop(){
       }
     }
   } else if (st_1B == 2){
-    S1B.setSpeed(20);
+    S1B.setSpeed(40);
     if( (curTime - t0_1B)> MICROSECONDS_PER_MICROSTEP){
       t0_1B = curTime;
       // step and record
       S1B.step(-1);
-      delayMicroseconds(STEP_DELAY);
+      delayMicroseconds(STEP_DELAY/2);
       c_1B--;
       // enought down? change state
       if ( c_1B <= 0){
@@ -265,9 +264,9 @@ void loop(){
       delay_post_1B = 10;
     } else {
       mag_1B = rData1;
-      delay_pre_1B = int(constrain(map(rData1, 0, 20, 800, 50), 0, 800));
+      delay_pre_1B = int(constrain(map(rData1, 0, 20, 800, 100), 0, 800));
       maxdist_1B = int(constrain(map(rData1, 0, 20, 3, 30), 0, 30));
-      delay_post_1B = int(constrain(map(rData1, 0, 20, 1600, 50), 0, 1600));
+      delay_post_1B = int(constrain(map(rData1, 0, 20, 1600, 100), 0, 1600));
     }
     c_1B = 0;
     st_1B = 0;  
@@ -305,12 +304,12 @@ void loop(){
       }
     }
   } else if (st_2A == 2){
-    S2A.setSpeed(20);
+    S2A.setSpeed(40);
     if( (curTime - t0_2A)> MICROSECONDS_PER_MICROSTEP ){
       t0_2A = curTime;
       // step and record
       S2A.step(-1);
-      delayMicroseconds(STEP_DELAY);
+      delayMicroseconds(STEP_DELAY/2);
       c_2A--;
       // enought down? change state
       if ( c_2A <= 0){
@@ -339,9 +338,9 @@ void loop(){
       delay_post_2A = 10;
     } else {
       mag_2A = rData2;
-      delay_pre_2A = int(constrain(map(rData2, 0, 20, 500, 50), 0, 500));
+      delay_pre_2A = int(constrain(map(rData2, 0, 20, 500, 200), 0, 500));
       maxdist_2A = int(constrain(map(rData2, 0, 20, 3, 20), 0, 20));
-      delay_post_2A = int(constrain(map(rData2, 0, 20, 600, 50), 0, 600));
+      delay_post_2A = int(constrain(map(rData2, 0, 20, 800, 200), 0, 800));
     }
     c_2A = 0;
     st_2A = 0;  
@@ -379,12 +378,12 @@ void loop(){
       }
     }
   } else if (st_2B == 2){
-    S2B.setSpeed(20);
+    S2B.setSpeed(40);
     if( (curTime - t0_2B)> MICROSECONDS_PER_MICROSTEP){
       t0_2B = curTime;
       // step and record
       S2B.step(1);
-      delayMicroseconds(STEP_DELAY);
+      delayMicroseconds(STEP_DELAY/2);
       c_2B--;
       // enought down? change state
       if ( c_2B <= 0){
@@ -411,9 +410,9 @@ void loop(){
       delay_post_2B = 10;
       mag_2B = 0;
     } else {
-      delay_pre_2B = int(constrain(map(rData2, 0, 20, 900, 100), 0, 900));
+      delay_pre_2B = int(constrain(map(rData2, 0, 20, 900, 200), 0, 900));
       maxdist_2B = int(constrain(map(rData2, 0, 20, 3, 20), 0, 20));
-      delay_post_2B = int(constrain(map(rData2, 0, 20, 1000, 100), 0, 1000));
+      delay_post_2B = int(constrain(map(rData2, 0, 20, 1600, 400), 0, 1600));
       mag_2B = rData2;
     }
     c_2B = 0;

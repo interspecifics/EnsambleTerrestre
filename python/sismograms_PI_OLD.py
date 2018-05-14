@@ -42,8 +42,8 @@ import cv2
 import numpy as np
 import random, time, glob
 import urllib
-import OSC
-#import smbus
+#import OSC
+import smbus
 
 
 # ----------------------------------------------------------------\\ utils
@@ -56,8 +56,9 @@ colors = {'white':[222, 211, 222], 'dark': [12, 5, 1], \
 			'blue':[248, 96, 13], 'green': [0, 251, 0], \
 			'other':[113, 45, 8], 'yellow': [0, 255, 245], \
 			'red':[0, 0, 255], 'purp':[248, 6, 175]}
-#bus = smbus.SMBus(0)
-address = 0x6A
+bus = smbus.SMBus(1)
+address_NE = 0x6A
+address_SW = 0x3A
 
 
 def change_state(s):
@@ -74,8 +75,12 @@ def write_I2C(val):
 	return -1
 
 def write_list_I2C(string_data):
+	lis = [ord(c) for c in string_data]
+	bus.write_i2c_block_data(address_NE, 0, lis[:2])
+	bus.write_i2c_block_data(address_SW, 0, lis[2:])
+	#print ">> "+ string_data
 	#for c in string_data:
-		#bus.write_byte(address, ord(c))
+	#	bus.write_byte(address, ord(c))
 	return -1
 
 
@@ -166,6 +171,7 @@ def read_track(img, ntrack):
 		track.append([delta_y, y_top, y_bottom])
 	return track
 
+
 def read_tracks(img):
 	# like read_track but for all at once, return matrix
 	tracks = []
@@ -208,6 +214,7 @@ def read_tracks(img):
 	return tracks
 
 
+'''
 def stream_track(cOsc, track, per):
 	"""send data via osc periodically"""
 	print "<-- streaming track -->"
@@ -225,6 +232,7 @@ def stream_track(cOsc, track, per):
 		time.sleep(per)
 	print "\n<-- stream endpoint -->"
 	return 0
+'''
 
 
 # ----------------------------------------------------------------\\ drawing functions
@@ -278,6 +286,7 @@ def draw_sismogram(track):
 				#cv2.line(nu_can, (40 + 3*b, h/4), (40 + 3*b, 2*val+h/4), colors['other'], 2)
 				cv2.line(nu_can, (40 + 3*b, (-2*val+h/4)+1), (40 + 3*b, -2*val+h/4), colors['other'], 1)
 				cv2.line(nu_can, (40 + 3*b, ( 2*val+h/4)-1), (40 + 3*b,  2*val+h/4), colors['other'], 1)
+				'''
 				# send the messahe
 				msg = OSC.OSCMessage()
 				msg.setAddress(route)
@@ -286,6 +295,7 @@ def draw_sismogram(track):
 				cOsc.send(msg)
 				print msg,
 				for i in range(len(str(msg))): print "\r", 
+				'''
 				# overwrite the data values in it
 				cv2.rectangle(nu_can, (250, 30+h/2),  (450, 5+h/2),  colors['dark'],  -1)
 				cv2.rectangle(nu_can, (250, 60+h/2),  (450, 30+h/2), colors['dark'],  -1)
@@ -383,7 +393,9 @@ def draw_updating():
 	}
 	# create windows and canvas once
 	window_name = "Ensamble Terrestre"
-	cv2.namedWindow(window_name)
+	#cv2.namedWindow(window_name)
+	cv2.namedWindow(window_name, cv2.WND_PROP_FULLSCREEN)
+        cv2.setWindowProperty(window_name,cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_AUTOSIZE)
 	# fill the canvas with color
 	canvas = np.zeros((h, w, 3), np.uint8)
 	for j in range(h):
@@ -394,11 +406,11 @@ def draw_updating():
 	cv2.rectangle(canvas, box_main[0], box_main[1], box_main[2], box_main[3])
 	cv2.putText(canvas, "i n t e r s p e c i f i c s" ,(-72+w/2, 20), cv2.FONT_HERSHEY_PLAIN, 0.7, colors['blue'])
 	cv2.putText(canvas, "Ensamble" ,(-110+w/2,  10+h/4), cv2.FONT_HERSHEY_DUPLEX, 1.4, colors['green'])
-	cv2.putText(canvas, "Terrestre" ,(-110+w/2, 60+h/4), cv2.FONT_HERSHEY_SIMPLEX, 1.5, colors['green'])
+	cv2.putText(canvas, "Terrestre" ,(-105+w/2, 60+h/4), cv2.FONT_HERSHEY_SIMPLEX, 1.5, colors['green'])
 	# buttons
 	cv2.putText(canvas, "[Actualizando DB]: " ,(20+w*3/10, h*4/6), cv2.FONT_HERSHEY_PLAIN, 1, colors['green'])
 	cv2.imshow(window_name, canvas)
-	k = cv2.waitKey(50) & 0xFF
+	k = cv2.waitKey(5) & 0xFF
 	if k == 27:
 		cv2.destroyAllWindows()
 
@@ -418,7 +430,7 @@ def draw_updating():
 			i+=1
 	except:
 		return False
-	print "[UPDAtE]: complete"
+	print "[UPDAtE]: complete at: " + time.asctime()
 	time.sleep(2)
 	if i==len(urls):
 		change_state(4)
@@ -489,9 +501,10 @@ def draw_sismograms():
 	lud = "24/4/1420"
 	window_name = "Ensamble Terrestre"
 	# uncomment for fullscreen
-	cv2.namedWindow(window_name)
-	#cv2.namedWindow(window_name, cv2.WND_PROP_FULLSCREEN)
-	#cv2.setWindowProperty(window_name,cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+	# cv2.namedWindow(window_name)
+	cv2.namedWindow(window_name, cv2.WND_PROP_FULLSCREEN)
+	cv2.setWindowProperty(window_name,cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_AUTOSIZE)
+	
 	cv2.setMouseCallback(window_name, on_mouse)
 	canvas = np.zeros((h, w, 3), np.uint8)
 	for j in range(h):
@@ -505,11 +518,11 @@ def draw_sismograms():
 	cv2.rectangle(nu_canvas, box_main[0], box_main[1], box_main[2], box_main[3])
 	cv2.putText(nu_canvas, "i n t e r s p e c i f i c s" ,(-72+w/2, 20), cv2.FONT_HERSHEY_PLAIN, 0.7, colors['blue'])
 	cv2.putText(nu_canvas, "Ensamble" ,(-110+w/2,  10+h/4), cv2.FONT_HERSHEY_DUPLEX, 1.4, colors['green'])
-	cv2.putText(nu_canvas, "Terrestre" ,(-110+w/2, 60+h/4), cv2.FONT_HERSHEY_SIMPLEX, 1.5, colors['green'])
+	cv2.putText(nu_canvas, "Terrestre" ,(-105+w/2, 60+h/4), cv2.FONT_HERSHEY_SIMPLEX, 1.5, colors['green'])
 	cv2.putText(nu_canvas, "[Analizando] " ,(40+w*3/10, h*4/6), cv2.FONT_HERSHEY_PLAIN, 1, colors['green'])
 
 	cv2.imshow(window_name, nu_canvas)
-	k = cv2.waitKey(50) & 0xFF
+	k = cv2.waitKey(5) & 0xFF
 
 	# read the data:
 	# N - spig : san pedro martir, BC 	[31.046, -115.466]	negro, cuchillo obs
@@ -600,11 +613,10 @@ def draw_sismograms():
 			data_str = ""
 			# add data to buffer
 			for i,k in enumerate(data.keys()):
-				data_str+=chr(100+buff[k][b])
-				if i<3: data_str+=","
-				else: data_str+='\0'
+				data_str += chr(65+buff[k][b])
+			#print data_str
 			# send data
-			write_I2C(data_str)
+			write_list_I2C(data_str)
 			# show it
 			cv2.imshow(window_name, nu_canvas)
 			k = cv2.waitKey(400) & 0xFF
@@ -630,6 +642,7 @@ def draw_sismograms():
 
 # ----------------------------------------------------------------\\ M A I N
 if __name__ == "__main__":
+	'''
 	# -- osc
 	send_period = 1
 	osc_host = "192.168.1.73" 
@@ -641,6 +654,8 @@ if __name__ == "__main__":
 		print "<osc>: ok"
 	except:
 		print "<osc>: x.x"
+	'''
+	print "[ interspecifics // ensamble terrrestre ]"
 	# --timing
 	t0 = 0
 	t1 = 0
