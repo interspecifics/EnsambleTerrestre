@@ -6,7 +6,7 @@ sismograms
 ----------
 Dowload sismogram plots from Servicio Sismologico Nacional,
 Reads them as a track and generate OSC messages accordingly.
-mecanosaurio // 22.mzo.2018
+
 
 v0.1
 ----
@@ -34,6 +34,10 @@ v0.5
 send encoded data
 adjust timming
 keep it going forever
+
+v.0.6
+-----
+no silence but 
 """
 
 
@@ -48,8 +52,8 @@ import smbus
 
 # ----------------------------------------------------------------\\ utils
 
-w = 480
-h = 320
+w = 670
+h = 360
 state = 0
 # colors: http://paletton.com/#uid=52P0U0kDDll-D2jHnbjKWuWJIYd
 colors = {'white':[222, 211, 222], 'dark': [12, 5, 1], \
@@ -76,8 +80,12 @@ def write_I2C(val):
 
 def write_list_I2C(string_data):
 	lis = [ord(c) for c in string_data]
+
+	#uncomment this for comms
 	bus.write_i2c_block_data(address_NE, 0, lis[:2])
 	bus.write_i2c_block_data(address_SW, 0, lis[2:])
+	#
+
 	#print ">> "+ string_data
 	#for c in string_data:
 	#	bus.write_byte(address, ord(c))
@@ -404,15 +412,31 @@ def draw_updating():
 	# draw the boxes titles
 	box_main = [(5,5), (w-5, h-5), colors['other'], 1]
 	cv2.rectangle(canvas, box_main[0], box_main[1], box_main[2], box_main[3])
-	cv2.putText(canvas, "i n t e r s p e c i f i c s" ,(-72+w/2, 20), cv2.FONT_HERSHEY_PLAIN, 0.7, colors['blue'])
+	cv2.putText(canvas, "i n t e r s p e c i f i c s" ,(-77+w/2, 20), cv2.FONT_HERSHEY_PLAIN, 0.7, colors['blue'])
 	cv2.putText(canvas, "Ensamble" ,(-110+w/2,  10+h/4), cv2.FONT_HERSHEY_DUPLEX, 1.4, colors['green'])
 	cv2.putText(canvas, "Terrestre" ,(-105+w/2, 60+h/4), cv2.FONT_HERSHEY_SIMPLEX, 1.5, colors['green'])
 	# buttons
-	cv2.putText(canvas, "[Actualizando DB]: " ,(20+w*3/10, h*4/6), cv2.FONT_HERSHEY_PLAIN, 1, colors['green'])
+	cv2.putText(canvas, "[Actualizando DB]: " ,(-77+w/2, h*4/6), cv2.FONT_HERSHEY_PLAIN, 1, colors['green'])
 	cv2.imshow(window_name, canvas)
 	k = cv2.waitKey(5) & 0xFF
 	if k == 27:
 		cv2.destroyAllWindows()
+
+#	send tunning
+	ran = random.randint(0, 11)
+	if ran==0: data_str = "EBBE"
+	elif ran==1: data_str="GGMM"
+	elif ran==2: data_str="KCKC"
+	elif ran==3: data_str="UMMU"
+	elif ran==4: data_str="ZZLL"
+	elif ran==5: data_str="NWNW"
+	elif ran==6: data_str="IOOI"
+	elif ran==7: data_str="FSSS"
+	elif ran==8: data_str="CSCS"
+	elif ran==9: data_str="OKNO"
+	else: data_str="ENWS"
+	write_list_I2C(data_str)
+	print "[tunning]: "+data_str
 
 	# wait for a change
 	i=0
@@ -432,6 +456,12 @@ def draw_updating():
 		return False
 	print "[UPDAtE]: complete at: " + time.asctime()
 	time.sleep(2)
+
+#	send the stop
+        data_str="AAAA"
+        write_list_I2C(data_str)
+
+	#change state
 	if i==len(urls):
 		change_state(4)
 		print "[ST]: IV"
@@ -516,13 +546,27 @@ def draw_sismograms():
 	box_plot = [(10,10), (w-15, h/2), colors['blue'], 1]
 	nu_canvas = canvas.copy()
 	cv2.rectangle(nu_canvas, box_main[0], box_main[1], box_main[2], box_main[3])
-	cv2.putText(nu_canvas, "i n t e r s p e c i f i c s" ,(-72+w/2, 20), cv2.FONT_HERSHEY_PLAIN, 0.7, colors['blue'])
+	cv2.putText(nu_canvas, "i n t e r s p e c i f i c s" ,(-77+w/2, 20), cv2.FONT_HERSHEY_PLAIN, 0.7, colors['blue'])
 	cv2.putText(nu_canvas, "Ensamble" ,(-110+w/2,  10+h/4), cv2.FONT_HERSHEY_DUPLEX, 1.4, colors['green'])
 	cv2.putText(nu_canvas, "Terrestre" ,(-105+w/2, 60+h/4), cv2.FONT_HERSHEY_SIMPLEX, 1.5, colors['green'])
-	cv2.putText(nu_canvas, "[Analizando] " ,(40+w*3/10, h*4/6), cv2.FONT_HERSHEY_PLAIN, 1, colors['green'])
+	cv2.putText(nu_canvas, "[Analizando] " ,(-50+w/2, h*4/6), cv2.FONT_HERSHEY_PLAIN, 1, colors['green'])
 
 	cv2.imshow(window_name, nu_canvas)
 	k = cv2.waitKey(5) & 0xFF
+
+#	send the tunning
+	ran = random.randint(0, 10)
+        if ran==0: data_str = "EEEE"
+        elif ran==1: data_str="SSSS"
+        elif ran==2: data_str="KKKK"
+        elif ran==3: data_str="NNNN"
+	elif ran==4: data_str="PPPP"
+	elif ran==6: data_str="ZZZZ"
+	elif ran==9: data_str="JJJJ"
+        else: data_str="IIII"
+        write_list_I2C(data_str)
+	print "[tunning.2]: " + data_str
+
 
 	# read the data:
 	# N - spig : san pedro martir, BC 	[31.046, -115.466]	negro, cuchillo obs
@@ -530,26 +574,30 @@ def draw_sismograms():
 	# S - huig : huatulco, OA 			[15.769, -96.108]	azul, conejo
 	# W - caig : el cayaco, GE 			[17.048, -100.267]  blanco, casa
 	data = {}
-	cv2.putText(nu_canvas, " . " ,(40+w*3/10, h*5/6), cv2.FONT_HERSHEY_PLAIN, 1, colors['green'])
-	cv2.imshow(window_name, nu_canvas)
-	k = cv2.waitKey(10) & 0xFF
-	data["N"] = load_track("./data/lpig.gif")
-	cv2.putText(nu_canvas, " . " ,(60+w*3/10, h*5/6), cv2.FONT_HERSHEY_PLAIN, 1, colors['green'])
-	cv2.imshow(window_name, nu_canvas)
-	k = cv2.waitKey(10) & 0xFF
-	data["E"] = load_track("./data/ppig.gif")
 	cv2.putText(nu_canvas, " . " ,(80+w*3/10, h*5/6), cv2.FONT_HERSHEY_PLAIN, 1, colors['green'])
 	cv2.imshow(window_name, nu_canvas)
 	k = cv2.waitKey(10) & 0xFF
-	data["S"] = load_track("./data/huig.gif")
+	data["N"] = load_track("./data/lpig.gif")
 	cv2.putText(nu_canvas, " . " ,(100+w*3/10, h*5/6), cv2.FONT_HERSHEY_PLAIN, 1, colors['green'])
 	cv2.imshow(window_name, nu_canvas)
 	k = cv2.waitKey(10) & 0xFF
-	data["W"] = load_track("./data/caig.gif")
+	data["E"] = load_track("./data/ppig.gif")
 	cv2.putText(nu_canvas, " . " ,(120+w*3/10, h*5/6), cv2.FONT_HERSHEY_PLAIN, 1, colors['green'])
 	cv2.imshow(window_name, nu_canvas)
 	k = cv2.waitKey(10) & 0xFF
+	data["S"] = load_track("./data/huig.gif")
+	cv2.putText(nu_canvas, " . " ,(140+w*3/10, h*5/6), cv2.FONT_HERSHEY_PLAIN, 1, colors['green'])
+	cv2.imshow(window_name, nu_canvas)
+	k = cv2.waitKey(10) & 0xFF
+	data["W"] = load_track("./data/caig.gif")
+	cv2.putText(nu_canvas, " . " ,(160+w*3/10, h*5/6), cv2.FONT_HERSHEY_PLAIN, 1, colors['green'])
+	cv2.imshow(window_name, nu_canvas)
+	k = cv2.waitKey(10) & 0xFF
 
+
+#	send the stop
+        data_str="AAAA"
+        write_list_I2C(data_str)
 
 	# each data is an array
 	# show it continously over time
@@ -597,23 +645,36 @@ def draw_sismograms():
 						cv2.rectangle(nu_canvas, (int(x_off[k]+(j-1)*step), y_off[k]-np.clip(buff[k][b-1], 0, 40)), \
 									(int(x_off[k]+abs(j)*step), y_off[k]-np.clip(buff[k][b],0,40)), colors["green"], 1)
 				# draw titles
-				cv2.putText(canvas, "i n t e r s p e c i f i c s" ,(-72+w/2, 15), cv2.FONT_HERSHEY_PLAIN, 0.7, colors['blue'])
-				cv2.putText(canvas, "[Ensamble Terrestre]" ,(-85+w/2, 30), cv2.FONT_HERSHEY_PLAIN, 1, colors['white'])
+				cv2.putText(canvas, "i n t e r s p e c i f i c s" ,(-77+w/2, 15), cv2.FONT_HERSHEY_PLAIN, 0.7, colors['blue'])
+				cv2.putText(canvas, "[Ensamble Terrestre]" ,(-90+w/2, 30), cv2.FONT_HERSHEY_PLAIN, 1, colors['white'])
 				# draw labels
-				cv2.putText(nu_canvas, "[S]:" ,(x_off[k]+10, y_off[k]-10+h/4), cv2.FONT_HERSHEY_PLAIN, 0.7, colors['red'])
-				cv2.putText(nu_canvas, stations[k] ,(x_off[k]+35, y_off[k]-10+h/4), cv2.FONT_HERSHEY_PLAIN, 0.7, colors['white'])
-				cv2.putText(nu_canvas, "[A]:" ,(x_off[k]+82, y_off[k]-10+h/4), cv2.FONT_HERSHEY_PLAIN, 0.7, colors['red'])
-				cv2.putText(nu_canvas, str(buff[k][b]) ,(x_off[k]+105, y_off[k]-10+h/4), cv2.FONT_HERSHEY_PLAIN, 0.7, colors['white'])
+				cv2.putText(nu_canvas, "[S]:" ,(x_off[k]+45, y_off[k]-10+h/4), cv2.FONT_HERSHEY_PLAIN, 0.7, colors['red'])
+				cv2.putText(nu_canvas, stations[k] ,(x_off[k]+70, y_off[k]-10+h/4), cv2.FONT_HERSHEY_PLAIN, 0.7, colors['white'])
+				cv2.putText(nu_canvas, "[A]:" ,(x_off[k]+117, y_off[k]-10+h/4), cv2.FONT_HERSHEY_PLAIN, 0.7, colors['red'])
+				cv2.putText(nu_canvas, str(buff[k][b]) ,(x_off[k]+140, y_off[k]-10+h/4), cv2.FONT_HERSHEY_PLAIN, 0.7, colors['white'])
 				data_hour = now_hour+(hour+1)
 				data_min = int( 60 - (60/528.0) * (4*132-1-i) )
 				#data_sec = int( (60*(4*132-1-i)%528 ) )
-				cv2.putText(nu_canvas, "[T]:" ,(x_off[k]+130, y_off[k]-10+h/4), cv2.FONT_HERSHEY_PLAIN, 0.7, colors['red'])
-				cv2.putText(nu_canvas, str(data_hour).zfill(2)+':'+str(data_min).zfill(2)+' hrs' ,(x_off[k]+150, y_off[k]-10+h/4), cv2.FONT_HERSHEY_PLAIN, 0.7, colors['white'])
+				cv2.putText(nu_canvas, "[T]:" ,(x_off[k]+165, y_off[k]-10+h/4), cv2.FONT_HERSHEY_PLAIN, 0.7, colors['red'])
+				cv2.putText(nu_canvas, str(data_hour).zfill(2)+':'+str(data_min).zfill(2)+' hrs' ,(x_off[k]+185, y_off[k]-10+h/4), cv2.FONT_HERSHEY_PLAIN, 0.7, colors['white'])
 				#cv2.putText(nu_canvas, str(hour+1)+'h '+str((4*132-1)-i)+'ss' ,(x_off[k]+150, y_off[k]-10+h/4), cv2.FONT_HERSHEY_PLAIN, 0.7, colors['white'])
 			data_str = ""
 			# add data to buffer
-			for i,k in enumerate(data.keys()):
-				data_str += chr(65+buff[k][b])
+			for ii,k in enumerate(data.keys()):
+				# inserta cada 5 segundos de silencio para mantener activo
+				if (buff[k][b]==0 and i%5==0): 
+					data_str += chr(69)
+					if ii==3: print "[.]: " + data_str,
+				elif(buff[k][b]==0 and i%15==0): 
+					data_str += chr(75)
+					if ii==3: print "[.]: " + data_str,
+				elif(buff[k][b]==0 and i%204<5): 
+					data_str +=chr(65+(i%200)*3)
+					if ii==3: print "[.]: " + data_str,
+				elif(buff[k][b]!=0 and i%52<3): 
+					data_str+=chr(64+buff[k][b]+3*(i%52))
+					if ii==3: print "[.]: " + data_str,
+				else: data_str += chr(65+buff[k][b])
 			#print data_str
 			# send data
 			write_list_I2C(data_str)
