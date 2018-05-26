@@ -1,6 +1,7 @@
 # EnsambleTerrestre
 
 
+
 Composición generativa basada en un modelo del movimiento de la tierra.
 
 
@@ -22,3 +23,8 @@ Configurar autorun como https://www.raspberrypi.org/forums/viewtopic.php?t=13886
 Las direcciones de los dispositivos para la comunicación por I2C son
 	* address_NE = 0x6A
 	* address_SW = 0x3A
+	
+--- 
+Acceso
+ssh pi@ensamble.local 
+p: sismogramas 
